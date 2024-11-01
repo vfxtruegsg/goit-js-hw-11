@@ -8,8 +8,9 @@ import iziToast from 'izitoast';
 // Додатковий імпорт стилів
 import 'izitoast/dist/css/iziToast.min.css';
 
-const BASE_URL = 'https://pixabay.com/api/';
-const API_KEY = '46841282-5db11f3b406bb735b1a036109';
+import fetchData from './js/pixabay-api';
+import createMarkup from './js/render-functions';
+
 const form = document.querySelector('.search-container');
 const list = document.querySelector('.list-photo');
 const loader = document.querySelector('.loader');
@@ -30,7 +31,7 @@ function searchPictures(event) {
     });
     return;
   }
-
+  loader.style.opacity = '1';
   fetchData(searchQuery)
     .then(data => {
       if (!data.total) {
@@ -50,72 +51,10 @@ function searchPictures(event) {
     })
     .catch(error => {
       throw new Error(error);
+    })
+    .finally(() => {
+      loader.style.opacity = '0';
     });
-}
-
-function fetchData(searchQuery) {
-  const params = new URLSearchParams({
-    key: API_KEY,
-    q: searchQuery,
-    image_type: 'photo',
-    orientation: 'horizontal',
-    safesearch: 'true',
-  });
-
-  return fetch(`${BASE_URL}?${params}`).then(response => {
-    if (!response.ok) {
-      throw new Error(response.statusText);
-    }
-    return response.json();
-  });
-}
-
-function createMarkup(arr) {
-  return arr
-    .map(
-      ({
-        webformatURL,
-        largeImageURL,
-        tags,
-        likes,
-        views,
-        comments,
-        downloads,
-      }) => `
-    <li class="gallery-item">
-    <a class="gallery-link" href=${largeImageURL} >
-    <img
-      class="gallery-image"
-      src=${webformatURL}
-      alt=${tags}
-      width="360" height ="152"
-    />
-  </a>
-  <div class="description">
-  <ul class="list-points">
-  <li class="items-points">
-  <p>Likes</p>
-  <p>${likes}</p>
-  </li>
-  <li class="items-points">
-  <p>Views</p>
-  <p>${views}</p>
-  </li>
-  <li class="items-points">
-  <p>Comments</p>
-  <p>${comments}</p>
-  </li>
-  <li class="items-points">
-  <p>Downloads</p>
-  <p>${downloads}</p>
-  </li>
-
-  </ul>
-  </div>
-</li>  
-    `
-    )
-    .join('');
 }
 
 const gallery = new SimpleLightbox('.gallery-link', {
